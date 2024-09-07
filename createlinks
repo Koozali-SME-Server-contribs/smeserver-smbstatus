@@ -1,0 +1,47 @@
+#!/usr/bin/perl -w
+use esmith::Build::CreateLinks qw(:all);
+# our event specific for updating with yum without reboot
+$event = 'smeserver-smbstatus-update';
+#add here the path to your templates needed to expand
+#see the /etc/systemd/system-preset/49-koozali.preset should be present for systemd integration on all you yum update event
+
+foreach my $file (qw(
+                /etc/systemd/system-preset/49-koozali.preset
+))
+{
+    templates2events( $file, $event );
+}
+#action needed in case we have a systemd unit
+event_link('systemd-default', $event, '10');
+event_link('systemd-reload', $event, '50');
+#action specific to this package
+#event_link('action', $event, '30');
+#services we need to restart
+#safe_symlink('restart',root/etc/e-smith/events/$event/services2adjust/service);
+#and Server Manager panel link
+#panel_link('somefunction', 'manager');
+
+#--------------------------------------------------
+# functions for manager panel
+#--------------------------------------------------
+my $panel = "manager";
+
+panel_link("smbstatus", $panel);
+#panel_link("function2", $panel);
+
+#--------------------------------------------------
+# actions for console-save event:
+#--------------------------------------------------
+$event = "console-save";
+
+#event_link("action1", $event, "55");
+#event_link("action2", $event, "60");
+
+#--------------------------------------------------
+# actions for domain-create event:
+#--------------------------------------------------
+$event = "domain-create";
+
+#event_link("action1", $event, "55");
+#event_link("action2", $event, "90");
+
