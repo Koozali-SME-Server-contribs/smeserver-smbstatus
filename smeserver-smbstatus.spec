@@ -2,7 +2,7 @@ Summary: SME server smbstatus
 %define name smeserver-smbstatus
 Name: %{name}
 %define version 1.2
-%define release 4
+%define release 5
 Version: %{version}
 Release: %{release}
 #Copyright: Freely distributable
@@ -12,12 +12,15 @@ Source: %{name}-%{version}.tar.xz
 License: GNU GPL version 2
 Packager: Michel Van hees <michel@vanhees.cc>
 BuildRoot: /var/tmp/e-smith-buildroot
-BuildRequires:  e-smith-devtools
+BuildRequires: smeserver-devtools
 BuildArchitectures: noarch
 Requires: smeserver-release >= 8
 AutoReqProv: no
 
 %changelog
+* Sun Sep 08 2024 fix-e-smith-pkg.sh by Trevor Batley <trevor@batley.id.au> 1.2-5.sme
+- Fix e-smith references in smeserver-smbstatus [SME: 12732]
+
 * Sat Sep 07 2024 cvs2git.sh aka Brian Read <brianr@koozali.org> 1.2-4.sme
 - Roll up patches and move to git repo [SME: 12338]
 
