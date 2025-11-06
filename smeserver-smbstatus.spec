@@ -2,9 +2,9 @@ Summary: SME server smbstatus
 %define name smeserver-smbstatus
 Name: %{name}
 %define version 1.2
-%define release 5
+%define release 6
 Version: %{version}
-Release: %{release}
+Release: %{release}%{?dist}
 #Copyright: Freely distributable
 Group: Apache/php/caching
 Source: %{name}-%{version}.tar.xz
@@ -18,6 +18,9 @@ Requires: smeserver-release >= 8
 AutoReqProv: no
 
 %changelog
+* Thu Nov 06 2025 Brian Read <brianr@koozali.org> 1.2-6.sme
+- Make sure rpm has .el8.sme in name [SME: 13275]
+
 * Sun Sep 08 2024 fix-e-smith-pkg.sh by Trevor Batley <trevor@batley.id.au> 1.2-5.sme
 - Fix e-smith references in smeserver-smbstatus [SME: 12732]
 
