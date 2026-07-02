@@ -1,8 +1,8 @@
 Summary: SME server smbstatus
 %define name smeserver-smbstatus
 Name: %{name}
-%define version 1.2
-%define release 6
+%define version 1.3
+%define release 1
 Version: %{version}
 Release: %{release}%{?dist}
 #Copyright: Freely distributable
@@ -18,6 +18,9 @@ Requires: smeserver-release >= 8
 AutoReqProv: no
 
 %changelog
+* Thu Jul 02 2026 Brian Read <brianr@koozali.org> 1.3-1.sme
+- Add in SM2 panel and move to using latest smbstatus found in /usr/bin [SME: 13358]
+
 * Thu Nov 06 2025 Brian Read <brianr@koozali.org> 1.2-6.sme
 - Make sure rpm has .el8.sme in name [SME: 13275]
 
