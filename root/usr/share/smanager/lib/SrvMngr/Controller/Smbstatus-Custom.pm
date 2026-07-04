@@ -74,9 +74,18 @@ sub do_extras {
 		#	description => $rec ? ($rec->prop('Name') // '') : '',
 		#	
 		# so that it works if the DB key does not exist or param is ''
-#		my $json = <<'JSON';
-#{"timestamp": "2026-07-02T18:42:18.254371+0300", "version": "4.19.4", "smb_conf": "/etc/samba/smb.conf", "sessions": {"3256726689": {"session_id": "3256726689", "server_id": {"pid": "3734", "task_id": "0", "vnn": "4294967295", "unique_id": "4879990531917976163"}, "uid": 101, "gid": 101, "username": "admin", "groupname": "admin", "remote_machine": "192.168.0.245", "hostname": "ipv4:192.168.0.245:50503", "session_dialect": "SMB3_02", "encryption": {"cipher": "-", "degree": "none"}, "signing": {"cipher": "AES-128-CMAC", "degree": "partial"}}}, "tcons": {"1948637949": {"service": "Primary", "server_id": {"pid": "3734", "task_id": "0", "vnn": "4294967295", "unique_id": "4879990531917976163"}, "tcon_id": "1948637949", "session_id": "3256726689", "machine": "192.168.0.245", "connected_at": "2026-07-02T18:42:11.382145+03:00", "encryption": {"cipher": "-", "degree": "none"}, "signing": {"cipher": "-", "degree": "none"}}, "460183796": {"service": "IPC$", "server_id": {"pid": "3734", "task_id": "0", "vnn": "4294967295", "unique_id": "4879990531917976163"}, "tcon_id": "460183796", "session_id": "3256726689", "machine": "192.168.0.245", "connected_at": "2026-07-02T18:42:04.041409+03:00", "encryption": {"cipher": "-", "degree": "none"}, "signing": {"cipher": "-", "degree": "none"}}}, "open_files": {"/home/e-smith/files/ibays/Primary/.": {"service_path": "/home/e-smith/files/ibays/Primary", "filename": ".", "fileid": {"devid": 64768, "inode": 68719655852, "extid": 0}, "num_pending_deletes": 0, "opens": {"3734/7": {"server_id": {"pid": "3734", "task_id": "0", "vnn": "4294967295", "unique_id": "4879990531917976163"}, "uid": 101, "share_file_id": "7", "sharemode": {"hex": "0x00000007", "READ": true, "WRITE": true, "DELETE": true, "text": "RWD"}, "access_mask": {"hex": "0x00100081", "READ_DATA": true, "WRITE_DATA": false, "APPEND_DATA": false, "READ_EA": false, "WRITE_EA": false, "EXECUTE": false, "READ_ATTRIBUTES": true, "WRITE_ATTRIBUTES": false, "DELETE_CHILD": false, "DELETE": false, "READ_CONTROL": false, "WRITE_DAC": false, "SYNCHRONIZE": true, "ACCESS_SYSTEM_SECURITY": false, "text": "R"}, "caching": {"READ": false, "WRITE": false, "HANDLE": false, "hex": "0x00000000", "text": ""}, "oplock": {}, "lease": {}, "opened_at": "2026-07-02T18:42:11.399425+03:00"}}}}}
-#JSON
+		#
+		# Read jsno from file for TESTING
+		#my $json_file = '/usr/share/smanager/lib/SrvMngr/Controller/smbstatus.json';
+		#open my $fh, '<', $json_file
+		#	or die "Could not open '$json_file': $!";
+		#my $json = do {
+		#	local $/;
+		#	<$fh>;
+		#};
+		#close $fh
+		#	or die "Could not close '$json_file': $!";
+
 		my $smbstatus = '/usr/bin/smbstatus';
 		my %result = ( raw => '', json => '{}' );
 
@@ -139,20 +148,28 @@ sub create_link{
 	return $link;
 }
 
-
+#
+# Convert smbstatus -j json to html
+#
 use HTML::Entities qw(encode_entities);
-use Scalar::Util qw(reftype blessed);
+use Scalar::Util qw(blessed);
 
 sub smbstatus_html {
     my ($c, $data) = @_;
+
     return qq{<div class="smbstatus smbstatus--error">Not a hash</div>}
         unless ref($data) eq 'HASH';
 
     my $html = qq{<div class="smbstatus">\n};
-    $html   .= qq{<div class="smbstatus__meta">\n};
-    $html   .= qq{<div class="smbstatus__meta-item"><span class="smbstatus__label">Timestamp</span><span class="smbstatus__value">} . _h($data->{timestamp} // '-') . qq{</span></div>\n};
-    $html   .= qq{<div class="smbstatus__meta-item"><span class="smbstatus__label">Version</span><span class="smbstatus__value">} . _h($data->{version} // '-') . qq{</span></div>\n};
-    $html   .= qq{</div>\n};
+
+    $html .= qq{<div class="smbstatus__meta">\n};
+    $html .= qq{<div class="smbstatus__meta-item"><span class="smbstatus__label">Timestamp</span><span class="smbstatus__value">}
+          . _scalar_html($data->{timestamp} // '-')
+          . qq{</span></div>\n};
+    $html .= qq{<div class="smbstatus__meta-item"><span class="smbstatus__label">Version</span><span class="smbstatus__value">}
+          . _scalar_html($data->{version} // '-')
+          . qq{</span></div>\n};
+    $html .= qq{</div>\n};
 
     for my $section (qw(sessions tcons open_files locks)) {
         next unless ref($data->{$section}) eq 'HASH';
@@ -166,53 +183,327 @@ sub smbstatus_html {
             next;
         }
 
-        $html .= qq{<div class="smbstatus__table-wrap">\n};
-        $html .= qq{<table class="smbstatus__table">\n};
-        $html .= qq{<thead><tr><th>ID</th><th>Details</th></tr></thead>\n<tbody>\n};
-
-        for my $id (sort keys %{ $data->{$section} }) {
-            $html .= qq{<tr>};
-            $html .= qq{<td class="smbstatus__id">} . _h($id) . qq{</td>};
-            $html .= qq{<td class="smbstatus__details">} . _render_value($data->{$section}{$id}) . qq{</td>};
-            $html .= qq{</tr>\n};
-        }
-
-        $html .= qq{</tbody></table>\n</div>\n</section>\n};
+		if ($section eq 'open_files') {
+			$html .= _render_open_files_table($data->{$section});
+		} else {
+			$html .= _render_section_table($section, $data->{$section});
+		}
+		$html .= qq{</section>\n};
     }
 
     $html .= qq{</div>\n};
     return $html;
 }
 
-sub _render_value {
-    my ($v) = @_;
-    return _h($v) if !ref($v);
+sub _render_section_table {
+    my ($section, $rows) = @_;
+
+    my $max_len = 1;
+    for my $row_key (keys %$rows) {
+        my $len = length("$row_key");
+        $max_len = $len if $len > $max_len;
+    }
+    $max_len += 1;
+    $max_len = 15 if $max_len > 15;
+
+    my $tree = _collect_column_tree($rows);
+    my @leaf_columns;
+    _collect_leaf_columns($tree, [], \@leaf_columns);
+
+    my $header_depth = _tree_depth($tree);
+    $header_depth = 1 if $header_depth < 1;
+    $header_depth = 3 if $header_depth > 3;
+
+    my @header_rows = map { [] } 1 .. $header_depth;
+
+    my %key_label = (
+        sessions   => 'Session',
+        tcons      => 'TCon',
+        open_files => 'Path',
+        locks      => 'Lock',
+    );
+
+    push @{ $header_rows[0] },
+        qq{<th rowspan="$header_depth" scope="col">} . _h($key_label{$section} // 'Key') . qq{</th>};
+
+    _build_header_rows($tree, 1, $header_depth, \@header_rows);
+
+    my $html = qq{<div class="smbstatus__table-wrap">\n};
+    $html   .= qq{<table class="smbstatus__table">\n};
+    $html   .= qq{<thead>\n};
+
+    for my $row (@header_rows) {
+        $html .= qq{<tr>} . join('', @$row) . qq{</tr>\n};
+    }
+
+    $html .= qq{</thead>\n<tbody>\n};
+
+    for my $row_key (sort keys %$rows) {
+        my $row = $rows->{$row_key};
+
+        $html .= qq{<tr>};
+        $html .= qq{<td class="smbstatus__id">} . _scalar_html($row_key, $max_len) . qq{</td>};
+
+        for my $leaf (@leaf_columns) {
+            my $value = _fetch_path_value($row, @{ $leaf->{path} });
+            $html .= qq{<td>} . _render_cell($value, $max_len) . qq{</td>};
+        }
+
+        $html .= qq{</tr>\n};
+    }
+
+    $html .= qq{</tbody></table>\n</div>\n};
+    return $html;
+}
+
+sub _collect_column_tree {
+    my ($rows) = @_;
+    my %tree;
+
+    for my $row_key (keys %$rows) {
+        my $row = $rows->{$row_key};
+        next unless ref($row) eq 'HASH';
+        _merge_hash_into_tree(\%tree, $row, 1);
+    }
+
+    return \%tree;
+}
+
+sub _merge_hash_into_tree {
+    my ($tree, $href, $depth) = @_;
+    return unless ref($href) eq 'HASH';
+
+    for my $k (sort keys %$href) {
+        my $v = $href->{$k};
+
+        $tree->{$k} ||= { children => {} };
+
+        if (ref($v) eq 'HASH' && $depth < 3 && keys %$v) {
+            _merge_hash_into_tree($tree->{$k}{children}, $v, $depth + 1);
+        }
+        else {
+            $tree->{$k}{leaf} = 1 unless keys %{ $tree->{$k}{children} || {} };
+        }
+    }
+}
+
+sub _collect_leaf_columns {
+    my ($tree, $path, $out) = @_;
+
+    for my $k (sort keys %$tree) {
+        my $node = $tree->{$k};
+        my @path2 = (@$path, $k);
+
+        if ($node->{children} && keys %{ $node->{children} }) {
+            _collect_leaf_columns($node->{children}, \@path2, $out);
+        }
+        else {
+            push @$out, { path => \@path2 };
+        }
+    }
+}
+
+sub _tree_depth {
+    my ($tree) = @_;
+    return 0 unless $tree && ref($tree) eq 'HASH' && keys %$tree;
+
+    my $max = 0;
+    for my $k (keys %$tree) {
+        my $node = $tree->{$k};
+        my $d = 1;
+
+        if ($node->{children} && keys %{ $node->{children} }) {
+            $d += _tree_depth($node->{children});
+        }
+
+        $max = $d if $d > $max;
+    }
+
+    return $max;
+}
+
+sub _build_header_rows {
+    my ($tree, $level, $max_depth, $rows_out) = @_;
+
+    for my $k (sort keys %$tree) {
+        my $node = $tree->{$k};
+        my $has_children = $node->{children} && keys %{ $node->{children} };
+        my $leaf_count = _count_leaf_nodes($node);
+
+        if ($has_children) {
+            push @{ $rows_out->[$level - 1] },
+                qq{<th class="smbstatus__group" colspan="$leaf_count" scope="colgroup">}
+              . _h($k)
+              . qq{</th>};
+
+            _build_header_rows($node->{children}, $level + 1, $max_depth, $rows_out);
+        }
+        else {
+            my $rowspan = $max_depth - $level + 1;
+            push @{ $rows_out->[$level - 1] },
+                qq{<th rowspan="$rowspan" scope="col">}
+              . _h($k)
+              . qq{</th>};
+        }
+    }
+}
+
+sub _count_leaf_nodes {
+    my ($node) = @_;
+
+    return 1 unless $node->{children} && keys %{ $node->{children} };
+
+    my $count = 0;
+    for my $k (keys %{ $node->{children} }) {
+        $count += _count_leaf_nodes($node->{children}{$k});
+    }
+
+    return $count;
+}
+
+sub _fetch_path_value {
+    my ($value, @path) = @_;
+
+    for my $part (@path) {
+        return undef unless ref($value) eq 'HASH';
+        return undef unless exists $value->{$part};
+        $value = $value->{$part};
+    }
+
+    return $value;
+}
+
+sub _render_cell {
+    my ($v, $max_len) = @_;
+
+    return qq{<span class="smbstatus__null">-</span>} unless defined $v;
+
+    return _scalar_html($v, $max_len) if !ref($v);
+
+    if (ref($v) eq 'ARRAY') {
+        return qq{<ul class="smbstatus__list">}
+             . join('', map { qq{<li>} . _render_cell($_, $max_len) . qq{</li>} } @$v)
+             . qq{</ul>};
+    }
 
     if (ref($v) eq 'HASH') {
+        if (!keys %$v) {
+            return qq{<span class="smbstatus__null">-</span>};
+        }
+
         my $s = qq{<table class="smbstatus__kv">\n<tbody>\n};
         for my $k (sort keys %$v) {
-            $s .= qq{<tr><th>} . _h($k) . qq{</th><td>} . _render_value($v->{$k}) . qq{</td></tr>\n};
+            $s .= qq{<tr><th scope="row">} . _h($k) . qq{</th><td>} . _render_cell($v->{$k}, $max_len) . qq{</td></tr>\n};
         }
         $s .= qq{</tbody>\n</table>\n};
         return $s;
     }
 
-    if (ref($v) eq 'ARRAY') {
-        return qq{<ul class="smbstatus__list">}
-             . join('', map { qq{<li>} . _render_value($_) . qq{</li>} } @$v)
-             . qq{</ul>};
-    }
+    return _scalar_html("$v", $max_len);
+}
 
-    return _h("$v");
+sub _scalar_html {
+    my ($v, $max) = @_;
+    $max = 20 unless defined $max;
+
+    $v = '' unless defined $v;
+    $v = "$v" if ref($v) || blessed($v);
+
+    my $full = _h($v);
+    return $full if length($v) <= $max;
+
+    my $short = substr($v, 0, $max - 1) . "\x{2026}";
+    return qq{<span class="smbstatus__trunc" title="$full">} . _h($short) . qq{</span>};
 }
 
 sub _h {
     my ($s) = @_;
     $s = '' unless defined $s;
-    $s =~ s/&/&amp;/g;
-    $s =~ s/</&lt;/g;
-    $s =~ s/>/&gt;/g;
-    $s =~ s/"/&quot;/g;
-    return $s;
+    return encode_entities($s, q{<>&"});
 }
+
+sub _render_open_files_table {
+    my ($rows) = @_;
+
+    my $max_len = 1;
+    for my $row_key (keys %$rows) {
+        my $len = length("$row_key");
+        $max_len = $len if $len > $max_len;
+    }
+    $max_len += 1;
+    $max_len = 15 if $max_len > 15;
+
+    my $html = qq{<div class="smbstatus__table-wrap">\n};
+    $html   .= qq{<table class="smbstatus__table">\n};
+    $html   .= qq{<thead><tr>}
+            . qq{<th>Path</th>}
+            . qq{<th>Filename</th>}
+            . qq{<th>Service path</th>}
+            . qq{<th>File ID</th>}
+            . qq{<th>Pending deletes</th>}
+            . qq{<th>Open handles</th>}
+            . qq{</tr></thead>\n<tbody>\n};
+
+    for my $path (sort keys %$rows) {
+        my $row = $rows->{$path} || {};
+        my $fileid = _summarise_fileid($row->{fileid});
+        my $opens  = _summarise_opens($row->{opens}, $max_len);
+
+        $html .= qq{<tr>};
+        $html .= qq{<td class="smbstatus__id">} . _scalar_html($path, $max_len) . qq{</td>};
+        $html .= qq{<td>} . _render_cell($row->{filename}, $max_len) . qq{</td>};
+        $html .= qq{<td>} . _render_cell($row->{service_path}, $max_len) . qq{</td>};
+        $html .= qq{<td>} . $fileid . qq{</td>};
+        $html .= qq{<td>} . _render_cell($row->{num_pending_deletes}, $max_len) . qq{</td>};
+        $html .= qq{<td>} . $opens . qq{</td>};
+        $html .= qq{</tr>\n};
+    }
+
+    $html .= qq{</tbody></table>\n</div>\n};
+    return $html;
+}
+
+sub _summarise_fileid {
+    my ($h) = @_;
+    return qq{<span class="smbstatus__null">-</span>}
+        unless ref($h) eq 'HASH' && keys %$h;
+
+    my @parts;
+    push @parts, 'devid:' . ($h->{devid} // '-') if exists $h->{devid};
+    push @parts, 'inode:' . ($h->{inode} // '-') if exists $h->{inode};
+    push @parts, 'extid:' . ($h->{extid} // '-') if exists $h->{extid};
+
+    return join ' ', map { _scalar_html($_, 30) } @parts;
+}
+
+sub _summarise_opens {
+    my ($opens, $max_len) = @_;
+    return qq{<span class="smbstatus__null">-</span>}
+        unless ref($opens) eq 'HASH' && keys %$opens;
+
+    my @items;
+
+    for my $handle (sort keys %$opens) {
+        my $o = $opens->{$handle} || {};
+
+        my @parts;
+        push @parts, $handle;
+
+        push @parts, 'uid ' . $o->{uid} if defined $o->{uid};
+        push @parts, 'share ' . $o->{share_file_id} if defined $o->{share_file_id};
+        push @parts, 'pid ' . $o->{server_id}{pid}
+            if ref($o->{server_id}) eq 'HASH' && defined $o->{server_id}{pid};
+        push @parts, 'mode ' . $o->{sharemode}{text}
+            if ref($o->{sharemode}) eq 'HASH' && length($o->{sharemode}{text} // '');
+        push @parts, 'access ' . $o->{access_mask}{text}
+            if ref($o->{access_mask}) eq 'HASH' && length($o->{access_mask}{text} // '');
+        push @parts, 'opened ' . $o->{opened_at} if defined $o->{opened_at};
+
+        push @items,
+            qq{<li>} . join(' · ', map { _scalar_html($_, 40) } @parts) . qq{</li>};
+    }
+
+    return qq{<ul class="smbstatus__handles">} . join('', @items) . qq{</ul>};
+}
+
 1;

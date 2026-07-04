@@ -157,3 +157,28 @@ pre {
   white-space: pre-wrap;   /* preserve whitespace, but allow wrapping */
   word-wrap: break-word;   /* break long words if needed */
 }
+
+.smbstatus__table thead th.smbstatus__group {
+    text-align: center;
+    vertical-align: middle;
+}
+
+.smbstatus__table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.smbstatus__table th,
+.smbstatus__table td {
+    padding: 0.4rem 0.6rem;
+    border: 1px solid #e6e6e6;
+}
+
+.smbstatus__table thead th {
+    background: #fafafa;
+}
+
+.smbstatus__table thead th.smbstatus__group {
+    text-align: center;
+    vertical-align: middle;
+}

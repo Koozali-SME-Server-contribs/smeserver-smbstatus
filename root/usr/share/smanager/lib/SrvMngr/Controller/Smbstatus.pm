@@ -6,7 +6,7 @@ package SrvMngr::Controller::Smbstatus;
 #
 #----------------------------------------------------------------------
 # heading     : Investigation
-# description : SMB Status
+# description : Samba Status
 # navigation  : 7000 465
 #
 # name : smbstatus,    method : get,   url : /smbstatus,   ctlact : Smbstatus#main

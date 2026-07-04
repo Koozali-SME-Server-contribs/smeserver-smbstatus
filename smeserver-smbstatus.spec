@@ -2,7 +2,7 @@ Summary: SME server smbstatus
 %define name smeserver-smbstatus
 Name: %{name}
 %define version 1.3
-%define release 1
+%define release 2
 Version: %{version}
 Release: %{release}%{?dist}
 #Copyright: Freely distributable
@@ -18,6 +18,9 @@ Requires: smeserver-release >= 8
 AutoReqProv: no
 
 %changelog
+* Sat Jul 04 2026 Brian Read <brianr@koozali.org> 1.3-2.sme
+- Recast json display with two row header, and make open files less wide [SME: 13358]
+
 * Thu Jul 02 2026 Brian Read <brianr@koozali.org> 1.3-1.sme
 - Add in SM2 panel and move to using latest smbstatus found in /usr/bin [SME: 13358]
 
