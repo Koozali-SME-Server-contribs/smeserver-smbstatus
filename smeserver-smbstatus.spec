@@ -2,7 +2,7 @@ Summary: SME server smbstatus
 %define name smeserver-smbstatus
 Name: %{name}
 %define version 1.3
-%define release 2
+%define release 3
 Version: %{version}
 Release: %{release}%{?dist}
 #Copyright: Freely distributable
@@ -15,9 +15,13 @@ BuildRoot: /var/tmp/e-smith-buildroot
 BuildRequires: smeserver-devtools
 BuildArchitectures: noarch
 Requires: smeserver-release >= 8
+Requires: perl-JSON-MaybeXS
 AutoReqProv: no
 
 %changelog
+* Tue Jul 07 2026 Brian Read <brianr@koozali.org> 1.3-3.sme
+- Add in missing perl-JSON-MaybeXS require to spec file [SME: 13647]
+
 * Sat Jul 04 2026 Brian Read <brianr@koozali.org> 1.3-2.sme
 - Recast json display with two row header, and make open files less wide [SME: 13358]
 
