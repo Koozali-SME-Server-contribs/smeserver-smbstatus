@@ -14,7 +14,7 @@ Packager: Michel Van hees <michel@vanhees.cc>
 BuildRoot: /var/tmp/e-smith-buildroot
 BuildRequires: smeserver-devtools
 BuildArchitectures: noarch
-Requires: smeserver-release >= 8
+Requires: smeserver-release >= 11
 Requires: perl-JSON-MaybeXS
 AutoReqProv: no
 
