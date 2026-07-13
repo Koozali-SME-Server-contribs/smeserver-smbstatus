@@ -2,7 +2,7 @@ Summary: SME server smbstatus
 %define name smeserver-smbstatus
 Name: %{name}
 %define version 1.3
-%define release 3
+%define release 4
 Version: %{version}
 Release: %{release}%{?dist}
 #Copyright: Freely distributable
@@ -19,6 +19,9 @@ Requires: perl-JSON-MaybeXS
 AutoReqProv: no
 
 %changelog
+* Mon Jul 13 2026 root <zsoltv@koozali.org> 1.3-4.sme
+- remove SM1 panel
+
 * Tue Jul 07 2026 Brian Read <brianr@koozali.org> 1.3-3.sme
 - Add in missing perl-JSON-MaybeXS require to spec file [SME: 13647]
 
