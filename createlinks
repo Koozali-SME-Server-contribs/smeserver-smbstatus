@@ -24,9 +24,9 @@ event_link('systemd-reload', $event, '50');
 #--------------------------------------------------
 # functions for manager panel
 #--------------------------------------------------
-my $panel = "manager";
+#my $panel = "manager";
 
-panel_link("smbstatus", $panel);
+#panel_link("smbstatus", $panel);
 #panel_link("function2", $panel);
 
 #--------------------------------------------------
